@@ -2,162 +2,50 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cozy Forest Clicker 🍀</title>
+    <title>Cozy Forest - Dark Mode</title>
     <style>
-        /* Menggunakan font sistem yang bersih dan warna soft pastel */
         body {
             margin: 0;
-            padding: 0;
-            background-color: #F7F4EF; /* Krem lembut */
-            color: #5A6351; /* Hijau lumut gelap untuk teks */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1A1D1A; /* Dark mode yang adem */
+            color: #C1D0B5; /* Hijau pucat biar gak silau */
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
             min-height: 100vh;
-            user-select: none;
-            overflow: hidden;
-        }
-
-        /* Area Atas: Skor */
-        .header {
             text-align: center;
-            margin-top: 30px;
         }
 
-        .header h1 {
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            opacity: 0.7;
-            margin: 0;
-        }
-
-        .score-container {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #8E9F84; /* Hijau pastel */
-            margin-top: 5px;
-        }
-
-        .cps-text {
-            font-size: 0.9rem;
-            opacity: 0.6;
-        }
-
-        /* Area Tengah: Tempat Tap */
         .click-area {
-            position: relative;
-            width: 220px;
-            height: 220px;
-            background-color: #E2ECE9; /* Mint pastel lembut */
+            background-color: #2D342D; /* Hijau gelap buat tombol */
+            width: 200px;
+            height: 200px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 30px rgba(142, 159, 132, 0.15);
             cursor: pointer;
-            transition: transform 0.1s ease;
+            border: 2px solid #4A574A;
         }
 
-        .click-area:active {
-            transform: scale(0.95);
-        }
-
-        /* Logo Clover Besar di Tengah */
-        .clover-main {
-            font-size: 5.5rem;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
-        }
-
-        /* Animasi Angka Melayang (+1) */
-        .floating-text {
-            position: absolute;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #A3B899;
-            pointer-events: none;
-            animation: floatUp 1.2s forwards ease-out;
-        }
-
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-100px) scale(0.8); }
-        }
-
-        /* Area Bawah: Menu Toko Upgrade */
         .shop-container {
             width: 100%;
-            max-width: 400px;
-            background-color: #FFFFFF;
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
+            background-color: #242824;
             padding: 20px;
-            box-sizing: border-box;
-            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.03);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
         }
 
-        .shop-title {
-            font-size: 1rem;
-            font-weight: bold;
-            margin-bottom: 12px;
-            opacity: 0.8;
-            text-align: center;
-        }
-
-        .shop-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #F9F9F9;
-            padding: 12px 16px;
-            border-radius: 14px;
-            margin-bottom: 10px;
-            border: 1px solid #EFEFEF;
-            transition: all 0.2s ease;
-        }
-
-        .shop-item.disabled {
-            opacity: 0.5;
-        }
-
-        .item-info h3 {
-            margin: 0;
-            font-size: 0.95rem;
-            color: #5A6351;
-        }
-
-        .item-info p {
-            margin: 2px 0 0 0;
-            font-size: 0.8rem;
-            opacity: 0.6;
-        }
-
-        .buy-btn {
-            background-color: #DCE7E1;
+        /* Tombol Start Musik */
+        #music-btn {
+            background: #4A574A;
+            color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 20px;
-            color: #5A6351;
-            font-weight: bold;
-            font-size: 0.85rem;
+            margin-top: 10px;
             cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .buy-btn:active:not(:disabled) {
-            transform: scale(0.95);
-        }
-
-        /* Notifikasi Sukses Upgrade */
-        .forest-status {
-            font-size: 0.85rem;
-            font-style: italic;
-            text-align: center;
-            margin-bottom: 10px;
-            color: #A79786; /* Warna pink/cokelat pastel hangat */
         }
     </style>
 </head>
@@ -165,166 +53,59 @@
 
     <div class="header">
         <h1>Cozy Forest</h1>
-        <div class="score-container"><span id="clover-count">0</span> 🍀</div>
-        <div class="cps-text">Pertumbuhan otomatis: <span id="cps-count">0</span>/dtk</div>
+        <h2 id="clover-count">0 🍀</h2>
+        <button id="music-btn" onclick="startMusic()">🎵 Nyalakan Musik Healing</button>
     </div>
 
-    <div class="forest-status" id="forest-status">Hutan sedang sunyi... Ketuk semanggi untuk memulai.</div>
-
-    <div class="click-area" id="click-area">
-        <div class="clover-main">🍀</div>
+    <div class="click-area" onclick="tapClover()">
+        <div style="font-size: 5rem;">🍀</div>
     </div>
 
     <div class="shop-container">
-        <div class="shop-title">Hiasi Hutanmu</div>
-        
-        <div class="shop-item" id="item-1">
-            <div class="item-info">
-                <h3>Sinar Matahari Pagi ☀️</h3>
-                <p>Biaya: <span id="cost-1">15</span> 🍀 (+0.5 dtk)</p>
-            </div>
-            <button class="buy-btn" onclick="buyUpgrade(1)">Undang</button>
-        </div>
-
-        <div class="shop-item" id="item-2">
-            <div class="item-info">
-                <h3>Angin Sepoi-Sepoi 🍃</h3>
-                <p>Biaya: <span id="cost-2">100</span> 🍀 (+3 dtk)</p>
-            </div>
-            <button class="buy-btn" onclick="buyUpgrade(2)">Panggil</button>
-        </div>
+        <p>Hutan sedang sunyi...</p>
     </div>
 
     <script>
-        // Data Game Dasar
         let clovers = 0;
-        let cloversPerSecond = 0;
+        let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        const upgrades = {
-            1: { cost: 15, cps: 0.5, count: 0, name: "Sinar Matahari Pagi" },
-            2: { cost: 100, cps: 3.0, count: 0, name: "Angin Sepoi-Sepoi" }
-        };
+        function tapClover() {
+            clovers++;
+            document.getElementById('clover-count').innerText = clovers + " 🍀";
+            playTwing();
+        }
 
-        // Web Audio API untuk generate Efek Suara Tanpa File Eksternal
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        function playSound(type) {
-            // Aktifkan Audio Context (kebijakan browser harus ada interaksi user)
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+        function playTwing() {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
+            osc.frequency.value = 600;
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
 
-            if (type === 'click') {
-                // Suara "Ting" lembut berfrekuensi tinggi mirip lonceng mini
+        // BGM Healing sederhana menggunakan Oscillator looping
+        function startMusic() {
+            document.getElementById('music-btn').innerText = "Playing... 🎵";
+            document.getElementById('music-btn').disabled = true;
+            
+            // Loop suara ambient lembut
+            setInterval(() => {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // Nada D5
-                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); 
-                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.frequency.value = 220; // Nada rendah yang dalam
+                gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-            } else if (type === 'upgrade') {
-                // Suara akor menanjak yang memuaskan
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(330, audioCtx.currentTime); // Nada E4
-                osc.frequency.setValueAtTime(440, audioCtx.currentTime + 0.1); // Nada A4
-                osc.frequency.setValueAtTime(660, audioCtx.currentTime + 0.2); // Nada E5
-                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.5);
-            }
+                osc.stop(audioCtx.currentTime + 2);
+            }, 3000);
         }
-
-        // Logika saat Tombol Utama di-tap
-        const clickArea = document.getElementById('click-area');
-        clickArea.addEventListener('click', (e) => {
-            clovers += 1;
-            updateDisplay();
-            playSound('click');
-            createFloatingText(e.clientX, e.clientY);
-        });
-
-        // Membuat angka +1 melayang di posisi jempol menekan layar
-        function createFloatingText(x, y) {
-            const text = document.createElement('div');
-            text.className = 'floating-text';
-            text.innerText = '+1';
-            
-            // Atur posisi memusat pada titik sentuh jika koordinat valid, jika tidak taruh di tengah lingkaran
-            if(x && y) {
-                text.style.left = `${x - 15}px`;
-                text.style.top = `${y - 30}px`;
-            } else {
-                text.style.left = '50%';
-                text.style.top = '40%';
-            }
-            
-            document.body.appendChild(text);
-
-            setTimeout(() => {
-                text.remove();
-            }, 1200);
-        }
-
-        // Logika membeli dekorasi/upgrade
-        function buyUpgrade(id) {
-            const item = upgrades[id];
-            if (clovers >= item.cost) {
-                clovers -= item.cost;
-                item.count++;
-                cloversPerSecond += item.cps;
-                
-                // Menaikkan harga beli berikutnya secara bertahap
-                item.cost = Math.round(item.cost * 1.3); 
-
-                playSound('upgrade');
-                updateDisplay();
-                updateForestStatus(item.name);
-            }
-        }
-
-        // Update status cerita hutan biar terasa hidup
-        function updateForestStatus(name) {
-            const statusEl = document.getElementById('forest-status');
-            if (name === "Sinar Matahari Pagi") {
-                statusEl.innerText = "Sinar matahari mulai menembus celah dedaunan hangat... ✨";
-            } else if (name === "Angin Sepoi-Sepoi") {
-                statusEl.innerText = "Rumput bergoyang lembut ditiup angin sejuk... 🍃";
-            }
-        }
-
-        // Sinkronisasi data ke tampilan layar
-        function updateDisplay() {
-            document.getElementById('clover-count').innerText = Math.floor(clovers);
-            document.getElementById('cps-count').innerText = cloversPerSecond.toFixed(1);
-            
-            document.getElementById('cost-1').innerText = upgrades[1].cost;
-            document.getElementById('cost-2').innerText = upgrades[2].cost;
-
-            // Mengatur transparansi item toko berdasarkan jumlah koin
-            for (let id in upgrades) {
-                const itemEl = document.getElementById(`item-${id}`);
-                if (clovers < upgrades[id].cost) {
-                    itemEl.classList.add('disabled');
-                } else {
-                    itemEl.classList.remove('disabled');
-                }
-            }
-        }
-
-        // Game Loop Utama: Berjalan otomatis setiap 100ms (0.1 detik)
-        setInterval(() => {
-            if (cloversPerSecond > 0) {
-                clovers += (cloversPerSecond / 10);
-                updateDisplay();
-            }
-        }, 100);
     </script>
 </body>
 </html>
