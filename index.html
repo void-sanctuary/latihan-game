@@ -2,109 +2,167 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Cozy Forest - Dark Mode</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Game Hindari Kotak</title>
     <style>
         body {
             margin: 0;
-            background-color: #1A1D1A; /* Dark mode yang adem */
-            color: #C1D0B5; /* Hijau pucat biar gak silau */
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            min-height: 100vh;
-            text-align: center;
-        }
-
-        .click-area {
-            background-color: #2D342D; /* Hijau gelap buat tombol */
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: 2px solid #4A574A;
-        }
-
-        .shop-container {
-            width: 100%;
-            background-color: #242824;
-            padding: 20px;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-        }
-
-        /* Tombol Start Musik */
-        #music-btn {
-            background: #4A574A;
+            padding: 0;
+            background-color: #222;
             color: white;
+            font-family: Arial, sans-serif;
+            overflow: hidden; /* Mencegah scroll */
+            touch-action: none; /* Mencegah zoom saat tap */
+        }
+        #gameArea {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background-color: #333;
+        }
+        #player {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            width: 50px;
+            height: 50px;
+            background-color: #00ffcc;
+            border-radius: 5px;
+            transform: translateX(-50%);
+            transition: left 0.1s ease;
+        }
+        .enemy {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: #ff4444;
+            border-radius: 50%;
+        }
+        #scoreBoard {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            z-index: 10;
+        }
+        #startBtn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: #00ffcc;
             border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            margin-top: 10px;
             cursor: pointer;
+            border-radius: 10px;
+            z-index: 20;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>Cozy Forest</h1>
-        <h2 id="clover-count">0 🍀</h2>
-        <button id="music-btn" onclick="startMusic()">🎵 Nyalakan Musik Healing</button>
-    </div>
-
-    <div class="click-area" onclick="tapClover()">
-        <div style="font-size: 5rem;">🍀</div>
-    </div>
-
-    <div class="shop-container">
-        <p>Hutan sedang sunyi...</p>
+    <div id="gameArea">
+        <div id="scoreBoard">Skor: 0</div>
+        <div id="player"></div>
+        <button id="startBtn" onclick="startGame()">Mulai Main</button>
     </div>
 
     <script>
-        let clovers = 0;
-        let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const player = document.getElementById('player');
+        const gameArea = document.getElementById('gameArea');
+        const scoreBoard = document.getElementById('scoreBoard');
+        const startBtn = document.getElementById('startBtn');
+        
+        let playerPos = 50; // Posisi pemain dalam persen (%)
+        let gameInterval;
+        let enemyInterval;
+        let score = 0;
+        let isGameOver = false;
 
-        function tapClover() {
-            clovers++;
-            document.getElementById('clover-count').innerText = clovers + " 🍀";
-            playTwing();
-        }
-
-        function playTwing() {
-            let osc = audioCtx.createOscillator();
-            let gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.frequency.value = 600;
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
-        }
-
-        // BGM Healing sederhana menggunakan Oscillator looping
-        function startMusic() {
-            document.getElementById('music-btn').innerText = "Playing... 🎵";
-            document.getElementById('music-btn').disabled = true;
+        // Kontrol Sentuh untuk HP
+        gameArea.addEventListener('touchmove', function(e) {
+            if (isGameOver) return;
+            let touchX = e.touches[0].clientX;
+            let areaWidth = gameArea.clientWidth;
+            playerPos = (touchX / areaWidth) * 100;
             
-            // Loop suara ambient lembut
-            setInterval(() => {
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.type = 'sine';
-                osc.frequency.value = 220; // Nada rendah yang dalam
-                gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 2);
-            }, 3000);
+            // Batasi agar tidak keluar layar
+            if (playerPos < 5) playerPos = 5;
+            if (playerPos > 95) playerPos = 95;
+            
+            player.style.left = playerPos + '%';
+        });
+
+        // Kontrol Mouse untuk PC (opsional)
+        gameArea.addEventListener('mousemove', function(e) {
+            if (isGameOver) return;
+            let areaWidth = gameArea.clientWidth;
+            playerPos = (e.clientX / areaWidth) * 100;
+            player.style.left = playerPos + '%';
+        });
+
+        function startGame() {
+            startBtn.style.display = 'none';
+            isGameOver = false;
+            score = 0;
+            scoreBoard.innerText = 'Skor: 0';
+            
+            // Hapus musuh lama jika ada
+            document.querySelectorAll('.enemy').forEach(e => e.remove());
+
+            gameInterval = setInterval(updateGame, 20);
+            enemyInterval = setInterval(createEnemy, 1000);
+        }
+
+        function createEnemy() {
+            if (isGameOver) return;
+            const enemy = document.createElement('div');
+            enemy.classList.add('enemy');
+            enemy.style.left = Math.random() * 90 + '%';
+            enemy.style.top = '-50px';
+            gameArea.appendChild(enemy);
+        }
+
+        function updateGame() {
+            if (isGameOver) return;
+
+            const enemies = document.querySelectorAll('.enemy');
+            const playerRect = player.getBoundingClientRect();
+
+            enemies.forEach(enemy => {
+                let top = parseInt(window.getComputedStyle(enemy).getPropertyValue('top'));
+                
+                // Gerakkan musuh ke bawah
+                enemy.style.top = (top + 5) + 'px';
+
+                // Cek Tabrakan
+                const enemyRect = enemy.getBoundingClientRect();
+                if (
+                    playerRect.left < enemyRect.right &&
+                    playerRect.right > enemyRect.left &&
+                    playerRect.top < enemyRect.bottom &&
+                    playerRect.bottom > enemyRect.top
+                ) {
+                    gameOver();
+                }
+
+                // Hapus musuh jika sudah lewat bawah dan tambah skor
+                if (top > window.innerHeight) {
+                    enemy.remove();
+                    score++;
+                    scoreBoard.innerText = 'Skor: ' + score;
+                }
+            });
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            clearInterval(gameInterval);
+            clearInterval(enemyInterval);
+            alert('Game Over! Skor kamu: ' + score);
+            startBtn.style.display = 'block';
+            startBtn.innerText = 'Main Lagi';
         }
     </script>
 </body>
