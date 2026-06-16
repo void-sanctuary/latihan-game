@@ -3,6 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Void Sanctuary - Episode 1</title>
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #e0e0e0;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .game-container {
+            text-align: center;
+            max-width: 500px;
+            border: 1px solid #333;
+            padding: 30px;
+            background-color: #141414;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.1);
+        }
+        h1 { color: #ff3333; font-size: 1.5rem; margin-bottom: 20px; }
+        p { font-size: 1.05rem; line-height: 1.6; text-align: left; }
+        .btn {
+            background-color: #222;
+            color: #ff3333;
+            border: 1px solid #ff3333;
+            padding: 12px 20px;
+            margin: 10px auto;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: 0.3s;
+            border-radius: 4px;
+            width: 100%;
+            display: block;
+            box-sizing: border-box;
+        }
+        .btn:hover { background-color: #ff3333; color: #0d0d0d; }
+    </style>
+</head>
+<body>
+
+<!-- Musik Latar Belakang (Ambiens Misteri/Horor) -->
+<audio id="bgMusic" loop>
+    <source src="https://assets.mixkit.co/active_storage/sfx/123/123-200.wav" type="audio/wav">
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">
+</audio>
+
+<div class="game-container" id="gameBox">
+    <h1>Gerbang Kekosongan</h1>
+    <p>Setelah lolos dari kamar terkunci, kamu tiba di sebuah aula luas dengan dinding marmer hitam. Di ujung aula, terdapat tiga buah lorong gelap gulita dengan simbol kuno yang memancarkan aura berbeda.</p>
+    <p>Suara bisikan tanpa wujud bergema di kepalamu: <em>"Pilihlah jalanmu dengan bijak, atau jiwamu akan tertinggal di sini selamanya..."</em></p>
+    
+    <button class="btn" onclick="pilihLorong('merah')">1. Lorong Simbol Merah (Berbau Amis Darah)</button>
+    <button class="btn" onclick="pilihLorong('biru')">2. Lorong Simbol Biru (Terdengar Isak Tangis)</button>
+    <button class="btn" onclick="pilihLorong('hitam')">3. Lorong Tanpa Simbol (Hening Mutlak)</button>
+</div>
+
+<script>
+// Fungsi untuk memutar musik saat klik pertama kali (syarat wajib browser HP)
+function putarMusik() {
+    const musik = document.getElementById('bgMusic');
+    // Menggunakan musik instrumen gratis untuk suasana misteri
+    if (musik.paused) {
+        musik.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"; // Mengaktifkan instrumen panjang
+        musik.volume = 0.4; // Mengatur volume agar tidak kekencangan (40%)
+        musik.play().catch(e => console.log("Musik butuh interaksi user dulu"));
+    }
+}
+
+function pilihLorong(pilihan) {
+    putarMusik(); // Jalankan musik begitu tombol di-klik
+    const box = document.getElementById('gameBox');
+    
+    if (pilihan === 'merah') {
+        box.innerHTML = `
+            <h1 style="color: #ff3333;">Jalur Pertumpahan Darah</h1>
+            <p>Kamu melangkah ke lorong merah. Tiba-tiba, dinding di sekitarmu mencair menjadi bayangan mahluk mengerikan! Kamu terpaksa berlari kencang tanpa arah hingga tersandung ke sebuah ruangan baru.</p>
+            <p><strong>Status:</strong> Selamat, tapi terluka. Cerita bersambung ke bab berikutnya!</p>
+            <button class="btn" onclick="location.reload()">Main Lagi Dari Awal</button>
+        `;
+    } else if (pilihan === 'biru') {
+        box.innerHTML = `
+            <h1 style="color: #3399ff;">Jalur Ratapan Jiwa</h1>
+            <p>Kamu mengikuti suara tangisan di lorong biru. Di ujung jalan, kamu bertemu dengan sosok bayangan yang menyerupai dirimu sendiri. Sosok itu memberikan sebuah kunci perak kuno sebelum akhirnya menghilang ke udara.</p>
+            <p><strong>Status:</strong> Kamu mendapatkan item rahasia "Kunci Perak"! Kisah berlanjut...</p>
+            <button class="btn" onclick="location.reload()">Main Lagi Dari Awal</button>
+        `;
+    } else if (pilihan === 'hitam') {
+        box.innerHTML = `
+            <h1 style="color: #777;">Terjebak di Ruang Hampa</h1>
+            <p>Keheningan mutlak menjebakmu. Semakin kamu berjalan, lorong ini seolah tidak ada ujungnya. Kamu kehilangan arah waktu dan ruang, terjebak selamanya di dalam Void Sanctuary.</p>
+            <p style="color: #ff3333;"><strong>GAME OVER:</strong> Jiwamu tersesat.</p>
+            <button class="btn" onclick="location.reload()">Coba Lagi</button>
+        `;
+    }
+}
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Void Sanctuary - Mini Teaser</title>
     <style>
         body {
