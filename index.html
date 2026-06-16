@@ -3,158 +3,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Void Sanctuary - The Beginning</title>
+    <title>Cozy Forest Clicker 🍀</title>
     <style>
+        /* Menggunakan font sistem yang bersih dan warna soft pastel */
         body {
-            background-color: #0b0b0f;
-            color: #d1d1d6;
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
+            padding: 0;
+            background-color: #F7F4EF; /* Krem lembut */
+            color: #5A6351; /* Hijau lumut gelap untuk teks */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 100vh;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        /* Area Atas: Skor */
+        .header {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin: 0;
+        }
+
+        .score-container {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #8E9F84; /* Hijau pastel */
+            margin-top: 5px;
+        }
+
+        .cps-text {
+            font-size: 0.9rem;
+            opacity: 0.6;
+        }
+
+        /* Area Tengah: Tempat Tap */
+        .click-area {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            background-color: #E2ECE9; /* Mint pastel lembut */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(142, 159, 132, 0.15);
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .click-area:active {
+            transform: scale(0.95);
+        }
+
+        /* Logo Clover Besar di Tengah */
+        .clover-main {
+            font-size: 5.5rem;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+        }
+
+        /* Animasi Angka Melayang (+1) */
+        .floating-text {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #A3B899;
+            pointer-events: none;
+            animation: floatUp 1.2s forwards ease-out;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-100px) scale(0.8); }
+        }
+
+        /* Area Bawah: Menu Toko Upgrade */
+        .shop-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: #FFFFFF;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
             padding: 20px;
             box-sizing: border-box;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.03);
         }
-        .game-container {
+
+        .shop-title {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            opacity: 0.8;
             text-align: center;
-            max-width: 500px;
-            border: 1px solid #2c2c35;
-            padding: 30px;
-            background-color: #12121a;
-            border-radius: 12px;
-            box-shadow: 0 0 20px rgba(138, 43, 226, 0.15);
         }
-        .avatar {
-            font-size: 50px;
-            margin-bottom: 15px;
-            animation: float 3s ease-in-out infinite;
+
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #F9F9F9;
+            padding: 12px 16px;
+            border-radius: 14px;
+            margin-bottom: 10px;
+            border: 1px solid #EFEFEF;
+            transition: all 0.2s ease;
         }
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+
+        .shop-item.disabled {
+            opacity: 0.5;
         }
-        h1 { color: #a182ff; font-size: 1.4rem; margin-bottom: 20px; letter-spacing: 2px; }
-        p { font-size: 1rem; line-height: 1.7; text-align: left; min-height: 80px; }
-        .btn {
-            background-color: #1c1c24;
-            color: #a182ff;
-            border: 1px solid #a182ff;
-            padding: 12px 20px;
-            margin: 10px auto;
-            cursor: pointer;
-            font-family: inherit;
+
+        .item-info h3 {
+            margin: 0;
             font-size: 0.95rem;
-            transition: 0.3s;
-            border-radius: 6px;
-            width: 100%;
-            display: block;
-            box-sizing: border-box;
+            color: #5A6351;
         }
-        .btn:hover { background-color: #a182ff; color: #12121a; }
-        .ending { color: #ff5555; font-weight: bold; }
+
+        .item-info p {
+            margin: 2px 0 0 0;
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        .buy-btn {
+            background-color: #DCE7E1;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: #5A6351;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .buy-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        /* Notifikasi Sukses Upgrade */
+        .forest-status {
+            font-size: 0.85rem;
+            font-style: italic;
+            text-align: center;
+            margin-bottom: 10px;
+            color: #A79786; /* Warna pink/cokelat pastel hangat */
+        }
     </style>
 </head>
 <body>
 
-<!-- Musik Latar Belakang Misteri -->
-<audio id="bgMusic" loop>
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" type="audio/mp3">
-</audio>
-
-<div class="game-container">
-    <!-- Gambar Imut Maskot Pixel Art (Bisa Berubah Sesuai Alur) -->
-    <div class="avatar" id="gameAvatar">⏳</div>
-    
-    <h1 id="gameTitle">VOID SANCTUARY</h1>
-    <p id="gameText">Kelopak matamu terasa berat. Saat berhasil terbangun, kamu tidak lagi berada di kamarmu yang hangat, melainkan terbaring di atas lantai marmer hitam yang dingin...</p>
-    
-    <div id="actionBox">
-        <button class="btn" onclick="lanjutAlur(1)">Lanjut Ketuk . . .</button>
+    <div class="header">
+        <h1>Cozy Forest</h1>
+        <div class="score-container"><span id="clover-count">0</span> 🍀</div>
+        <div class="cps-text">Pertumbuhan otomatis: <span id="cps-count">0</span>/dtk</div>
     </div>
-</div>
 
-<script>
-// Menyimpan data alur cerita dari A sampai Z
-const cerita = [
-    {
-        avatar: "👁️‍🗨️",
-        teks: "Keheningan di tempat ini terasa mencekam. Di atas langit-langit, tidak ada lampu, melainkan pusaran kabut keunguan yang berputar lambat lambat. Kamu menyadari satu hal: kamu terjebak di dimensi lain.",
-        tombol: `<button class="btn" onclick="lanjutAlur(2)">Periksa Sekeliling</button>`
-    },
-    {
-        avatar: "🐈‍⬛",
-        teks: "Saat mencoba berdiri, langkahmu terhenti. Seekor kucing hitam bermata ungu menyala muncul dari balik bayangan pelan-pelan. Ia tidak mengeong, tapi suaranya berdengung langsung di dalam kepalamu: 'Selamat datang, Sang Penulis kisah buruk.'"
-    },
-    {
-        avatar: "📜",
-        teks: "Kucing itu menjatuhkan sebuah gulungan kertas usang di depan kakimu. Di dalamnya tertulis sebaris kalimat berlumur tinta merah: 'Setiap cerita butuh akhir. Jika kamu tidak menentukan akhirmu sekarang, kegelapan yang akan memilihkan untukmu.'"
-    },
-    {
-        avatar: "🚪",
-        teks: "Tiba-tiba, dinding marmer di depanmu terbelah menjadi tiga buah celah pintu energi. Kucing hitam itu melompat mundur dan menghilang. Inilah momen penentuanmu. Pilih takdirmu, Naz."
-    }
-];
+    <div class="forest-status" id="forest-status">Hutan sedang sunyi... Ketuk semanggi untuk memulai.</div>
 
-function putarMusik() {
-    const musik = document.getElementById('bgMusic');
-    if (musik.paused) {
-        musik.volume = 0.3;
-        musik.play().catch(e => console.log("Musik aktif setelah interaksi."));
-    }
-}
+    <div class="click-area" id="click-area">
+        <div class="clover-main">🍀</div>
+    </div>
 
-function lanjutAlur(step) {
-    putarMusik(); // Musik otomatis menyala pelan saat tombol pertama diklik
-    
-    const avatar = document.getElementById('gameAvatar');
-    const teks = document.getElementById('gameText');
-    const actionBox = document.getElementById('actionBox');
-    
-    if (step < cerita.length) {
-        // Alur cerita mengalir alami berjalan maju
-        avatar.innerHTML = cerita[step].avatar;
-        teks.innerHTML = cerita[step].teks;
+    <div class="shop-container">
+        <div class="shop-title">Hiasi Hutanmu</div>
         
-        // Atur tombol otomatis untuk langkah berikutnya
-        if (step === cerita.length - 1) {
-            // Jika sudah di ujung alur (Z), tampilkan 3 Pilihan Ending
-            actionBox.innerHTML = `
-                <button class="btn" onclick="pilihEnding('cahaya')">✨ Masuk ke Pintu Cahaya Putih</button>
-                <button class="btn" onclick="pilihEnding('void')">🔮 Melebur Bersama Kabut Void</button>
-                <button class="btn" onclick="pilihEnding('kembali')">↩️ Tolak Memilih & Berbalik Arah</button>
-            `;
-        } else {
-            actionBox.innerHTML = `<button class="btn" onclick="lanjutAlur(${step + 1})">Lanjut . . .</button>`;
+        <div class="shop-item" id="item-1">
+            <div class="item-info">
+                <h3>Sinar Matahari Pagi ☀️</h3>
+                <p>Biaya: <span id="cost-1">15</span> 🍀 (+0.5 dtk)</p>
+            </div>
+            <button class="buy-btn" onclick="buyUpgrade(1)">Undang</button>
+        </div>
+
+        <div class="shop-item" id="item-2">
+            <div class="item-info">
+                <h3>Angin Sepoi-Sepoi 🍃</h3>
+                <p>Biaya: <span id="cost-2">100</span> 🍀 (+3 dtk)</p>
+            </div>
+            <button class="buy-btn" onclick="buyUpgrade(2)">Panggil</button>
+        </div>
+    </div>
+
+    <script>
+        // Data Game Dasar
+        let clovers = 0;
+        let cloversPerSecond = 0;
+
+        const upgrades = {
+            1: { cost: 15, cps: 0.5, count: 0, name: "Sinar Matahari Pagi" },
+            2: { cost: 100, cps: 3.0, count: 0, name: "Angin Sepoi-Sepoi" }
+        };
+
+        // Web Audio API untuk generate Efek Suara Tanpa File Eksternal
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            // Aktifkan Audio Context (kebijakan browser harus ada interaksi user)
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'click') {
+                // Suara "Ting" lembut berfrekuensi tinggi mirip lonceng mini
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // Nada D5
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); 
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'upgrade') {
+                // Suara akor menanjak yang memuaskan
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(330, audioCtx.currentTime); // Nada E4
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime + 0.1); // Nada A4
+                osc.frequency.setValueAtTime(660, audioCtx.currentTime + 0.2); // Nada E5
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            }
         }
-    }
-}
 
-function pilihEnding(opsi) {
-    const avatar = document.getElementById('gameAvatar');
-    const judul = document.getElementById('gameTitle');
-    const teks = document.getElementById('gameText');
-    const actionBox = document.getElementById('actionBox');
-    
-    judul.innerHTML = "TAKDIR AKHIR";
-    
-    if (opsi === 'cahaya') {
-        avatar.innerHTML = "🕊️";
-        teks.innerHTML = "Kamu melangkah mantap ke dalam cahaya putih. Rasa hangat menjalar ke seluruh tubuhmu. Perlahan, suara alarm HP-mu berbunyi... Kamu terbangun di kasurmu sendiri. Itu tadi cuma mimpi buruk... atau peringatan? <br><br><span class='ending'>[ ENDING A: Kembali ke Realitas ]</span>";
-    } else if (opsi === 'void') {
-        avatar.innerHTML = "👑";
-        teks.innerHTML = "Kamu membiarkan kabut ungu menelan tubuhmu. Alih-alih hancur, kamu justru merasakan kekuatan besar. Kamu berhenti menjadi manusia dan resmi menjadi penguasa baru di Void Sanctuary ini. <br><br><span class='ending'>[ ENDING B: Penguasa Kegelapan ]</span>";
-    } else if (opsi === 'kembali') {
-        avatar.innerHTML = "🌀";
-        teks.innerHTML = "Kamu keras kepala dan menolak takdir yang disediakan. Kamu berbalik arah dan berlari ke kegelapan abadi. Ceritamu macet, terjebak di dalam draf yang tidak pernah selesai ditulis. <br><br><span class='ending'>[ ENDING C: Penulis yang Tersesat ]</span>";
-    }
-    
-    // Tombol untuk mereset game
-    actionBox.innerHTML = `<button class="btn" onclick="location.reload()">Ulangi Dari Awal Kisah</button>`;
-}
-</script>
+        // Logika saat Tombol Utama di-tap
+        const clickArea = document.getElementById('click-area');
+        clickArea.addEventListener('click', (e) => {
+            clovers += 1;
+            updateDisplay();
+            playSound('click');
+            createFloatingText(e.clientX, e.clientY);
+        });
 
+        // Membuat angka +1 melayang di posisi jempol menekan layar
+        function createFloatingText(x, y) {
+            const text = document.createElement('div');
+            text.className = 'floating-text';
+            text.innerText = '+1';
+            
+            // Atur posisi memusat pada titik sentuh jika koordinat valid, jika tidak taruh di tengah lingkaran
+            if(x && y) {
+                text.style.left = `${x - 15}px`;
+                text.style.top = `${y - 30}px`;
+            } else {
+                text.style.left = '50%';
+                text.style.top = '40%';
+            }
+            
+            document.body.appendChild(text);
+
+            setTimeout(() => {
+                text.remove();
+            }, 1200);
+        }
+
+        // Logika membeli dekorasi/upgrade
+        function buyUpgrade(id) {
+            const item = upgrades[id];
+            if (clovers >= item.cost) {
+                clovers -= item.cost;
+                item.count++;
+                cloversPerSecond += item.cps;
+                
+                // Menaikkan harga beli berikutnya secara bertahap
+                item.cost = Math.round(item.cost * 1.3); 
+
+                playSound('upgrade');
+                updateDisplay();
+                updateForestStatus(item.name);
+            }
+        }
+
+        // Update status cerita hutan biar terasa hidup
+        function updateForestStatus(name) {
+            const statusEl = document.getElementById('forest-status');
+            if (name === "Sinar Matahari Pagi") {
+                statusEl.innerText = "Sinar matahari mulai menembus celah dedaunan hangat... ✨";
+            } else if (name === "Angin Sepoi-Sepoi") {
+                statusEl.innerText = "Rumput bergoyang lembut ditiup angin sejuk... 🍃";
+            }
+        }
+
+        // Sinkronisasi data ke tampilan layar
+        function updateDisplay() {
+            document.getElementById('clover-count').innerText = Math.floor(clovers);
+            document.getElementById('cps-count').innerText = cloversPerSecond.toFixed(1);
+            
+            document.getElementById('cost-1').innerText = upgrades[1].cost;
+            document.getElementById('cost-2').innerText = upgrades[2].cost;
+
+            // Mengatur transparansi item toko berdasarkan jumlah koin
+            for (let id in upgrades) {
+                const itemEl = document.getElementById(`item-${id}`);
+                if (clovers < upgrades[id].cost) {
+                    itemEl.classList.add('disabled');
+                } else {
+                    itemEl.classList.remove('disabled');
+                }
+            }
+        }
+
+        // Game Loop Utama: Berjalan otomatis setiap 100ms (0.1 detik)
+        setInterval(() => {
+            if (cloversPerSecond > 0) {
+                clovers += (cloversPerSecond / 10);
+                updateDisplay();
+            }
+        }, 100);
+    </script>
 </body>
 </html>
