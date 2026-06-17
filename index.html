@@ -2,168 +2,878 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Game Hindari Kotak</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>The Last Candle - Horror Game</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #222;
-            color: white;
-            font-family: Arial, sans-serif;
-            overflow: hidden; /* Mencegah scroll */
-            touch-action: none; /* Mencegah zoom saat tap */
+            background: #050505;
+            color: #ccc;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
         }
-        #gameArea {
-            position: relative;
+        #gameCanvas {
+            display: block;
             width: 100vw;
             height: 100vh;
-            background-color: #333;
         }
-        #player {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            width: 50px;
-            height: 50px;
-            background-color: #00ffcc;
-            border-radius: 5px;
-            transform: translateX(-50%);
-            transition: left 0.1s ease;
-        }
-        .enemy {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background-color: #ff4444;
-            border-radius: 50%;
-        }
-        #scoreBoard {
-            position: absolute;
+        #ui {
+            position: fixed;
             top: 10px;
             left: 10px;
-            font-size: 20px;
             z-index: 10;
+            font-size: 14px;
+            text-shadow: 0 0 5px #ff4400;
+            pointer-events: none;
         }
-        #startBtn {
-            position: absolute;
+        #message {
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            padding: 15px 30px;
-            font-size: 20px;
-            background-color: #00ffcc;
-            border: none;
-            cursor: pointer;
-            border-radius: 10px;
             z-index: 20;
+            font-size: 22px;
+            text-align: center;
+            text-shadow: 0 0 10px #ff0000;
+            display: none;
+            background: rgba(0,0,0,0.85);
+            padding: 30px;
+            border: 1px solid #333;
+            max-width: 90vw;
+        }
+        #startScreen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        #startScreen h1 {
+            font-size: 32px;
+            color: #ff4400;
+            text-shadow: 0 0 20px #ff0000;
+            margin-bottom: 20px;
+            animation: flicker 2s infinite;
+        }
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+            52% { opacity: 0.3; }
+            54% { opacity: 1; }
+        }
+        .btn {
+            background: #1a1a1a;
+            border: 1px solid #ff4400;
+            color: #ff4400;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        .btn:hover, .btn:active {
+            background: #ff4400;
+            color: #000;
+        }
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+        .ctrl-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,68,0,0.15);
+            border: 1px solid rgba(255,68,0,0.4);
+            border-radius: 50%;
+            color: #ff4400;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+        .ctrl-btn:active {
+            background: rgba(255,68,0,0.4);
+        }
+        #audioToggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid #333;
+            color: #666;
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .hint {
+            color: #666;
+            font-size: 12px;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
-
-    <div id="gameArea">
-        <div id="scoreBoard">Skor: 0</div>
-        <div id="player"></div>
-        <button id="startBtn" onclick="startGame()">Mulai Main</button>
+    <div id="startScreen">
+        <h1>🕯 THE LAST CANDLE</h1>
+        <p style="color:#888; max-width:300px; line-height:1.6;">
+            Kamu terjebak di ruangan gelap.<br>
+            Lilinmu menyala terus menipis.<br>
+            Ada <span style="color:#ff4400">sesuatu</span> di kegelapan.<br><br>
+            Cari korek & lilin sebelum terlalu gelap.
+        </p>
+        <p class="hint">Swipe / Arrow untuk bergerak • Sentuh layar untuk ambil</p>
+        <button class="btn" onclick="startGame()">MULAI</button>
     </div>
 
-    <script>
-        const player = document.getElementById('player');
-        const gameArea = document.getElementById('gameArea');
-        const scoreBoard = document.getElementById('scoreBoard');
-        const startBtn = document.getElementById('startBtn');
-        
-        let playerPos = 50; // Posisi pemain dalam persen (%)
-        let gameInterval;
-        let enemyInterval;
-        let score = 0;
-        let isGameOver = false;
+    <canvas id="gameCanvas"></canvas>
 
-        // Kontrol Sentuh untuk HP
-        gameArea.addEventListener('touchmove', function(e) {
-            if (isGameOver) return;
-            let touchX = e.touches[0].clientX;
-            let areaWidth = gameArea.clientWidth;
-            playerPos = (touchX / areaWidth) * 100;
-            
-            // Batasi agar tidak keluar layar
-            if (playerPos < 5) playerPos = 5;
-            if (playerPos > 95) playerPos = 95;
-            
-            player.style.left = playerPos + '%';
-        });
+    <div id="ui">
+        <div>🕯 Lilin: <span id="candleVal">100</span>%</div>
+        <div>📦 Korek: <span id="matchVal">0</span></div>
+        <div>👣 Langkah: <span id="stepVal">0</span></div>
+    </div>
 
-        // Kontrol Mouse untuk PC (opsional)
-        gameArea.addEventListener('mousemove', function(e) {
-            if (isGameOver) return;
-            let areaWidth = gameArea.clientWidth;
-            playerPos = (e.clientX / areaWidth) * 100;
-            player.style.left = playerPos + '%';
-        });
+    <div id="message"></div>
 
-        function startGame() {
-            startBtn.style.display = 'none';
-            isGameOver = false;
-            score = 0;
-            scoreBoard.innerText = 'Skor: 0';
-            
-            // Hapus musuh lama jika ada
-            document.querySelectorAll('.enemy').forEach(e => e.remove());
+    <button id="audioToggle" onclick="toggleAudio()">🔇 Suara Mati</button>
 
-            gameInterval = setInterval(updateGame, 20);
-            enemyInterval = setInterval(createEnemy, 1000);
+    <div id="controls">
+        <div class="ctrl-btn" ontouchstart="setMove('left')" onmousedown="setMove('left')" ontouchend="stopMove()" onmouseup="stopMove()">◀</div>
+        <div class="ctrl-btn" ontouchstart="setMove('up')" onmousedown="setMove('up')" ontouchend="stopMove()" onmouseup="stopMove()">▲</div>
+        <div class="ctrl-btn" ontouchstart="setMove('down')" onmousedown="setMove('down')" ontouchend="stopMove()" onmouseup="stopMove()">▼</div>
+        <div class="ctrl-btn" ontouchstart="setMove('right')" onmousedown="setMove('right')" ontouchend="stopMove()" onmouseup="stopMove()">▶</div>
+    </div>
+
+<script>
+// ================= AUDIO ENGINE (Web Audio API) =================
+let audioCtx = null;
+let audioEnabled = false;
+let droneNode = null;
+let heartbeatNode = null;
+
+function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function toggleAudio() {
+    if (!audioCtx) initAudio();
+    audioEnabled = !audioEnabled;
+    document.getElementById('audioToggle').textContent = audioEnabled ? '🔊 Suara Nyala' : '🔇 Suara Mati';
+    if (audioEnabled) {
+        startDrone();
+        startHeartbeat();
+    } else {
+        stopDrone();
+        stopHeartbeat();
+    }
+}
+
+function startDrone() {
+    if (!audioCtx || droneNode) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.value = 55; // Low drone
+    gain.gain.value = 0.03;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    droneNode = { osc, gain };
+}
+
+function stopDrone() {
+    if (droneNode) {
+        droneNode.osc.stop();
+        droneNode = null;
+    }
+}
+
+function startHeartbeat() {
+    if (!audioCtx || heartbeatNode) return;
+    const playBeat = () => {
+        if (!audioEnabled) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(40, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+
+        // Second beat
+        setTimeout(() => {
+            if (!audioEnabled) return;
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(35, audioCtx.currentTime);
+            gain2.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.start();
+            osc2.stop(audioCtx.currentTime + 0.25);
+        }, 350);
+
+        // Speed up as candle gets lower
+        const candlePct = candle / 100;
+        const interval = 600 + (candlePct * 800);
+        heartbeatNode = setTimeout(playBeat, interval);
+    };
+    playBeat();
+}
+
+function stopHeartbeat() {
+    if (heartbeatNode) {
+        clearTimeout(heartbeatNode);
+        heartbeatNode = null;
+    }
+}
+
+function playSound(type) {
+    if (!audioCtx || !audioEnabled) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const now = audioCtx.currentTime;
+
+    if (type === 'pickup') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+    } else if (type === 'danger') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.5);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.8);
+    } else if (type === 'step') {
+        // Footstep - very subtle noise
+        const bufferSize = audioCtx.sampleRate * 0.05;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * 0.3;
         }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 400;
+        gain.gain.value = 0.02;
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start(now);
+    }
+}
 
-        function createEnemy() {
-            if (isGameOver) return;
-            const enemy = document.createElement('div');
-            enemy.classList.add('enemy');
-            enemy.style.left = Math.random() * 90 + '%';
-            enemy.style.top = '-50px';
-            gameArea.appendChild(enemy);
+function playWhisper() {
+    if (!audioCtx || !audioEnabled) return;
+    const bufferSize = audioCtx.sampleRate * 1.5;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.sin(i / bufferSize * Math.PI);
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 2000 + Math.random() * 1000;
+    filter.Q.value = 5;
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    noise.start();
+}
+
+// ================= GAME ENGINE =================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let W, H;
+function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Game state
+let gameRunning = false;
+let candle = 100;
+let matches = 0;
+let steps = 0;
+let moveDir = null;
+let gameTime = 0;
+let deathTimer = 0;
+let won = false;
+
+// Player
+const player = { x: 0, y: 0, size: 8, vx: 0, vy: 0 };
+
+// Camera
+const camera = { x: 0, y: 0 };
+
+// World
+const TILE = 40;
+const WORLD_W = 60;
+const WORLD_H = 40;
+let walls = [];
+let items = [];
+let enemies = [];
+let particles = [];
+let flickerOffset = 0;
+let whisperTimer = 0;
+
+// Generate procedural dungeon
+function generateWorld() {
+    walls = [];
+    items = [];
+    enemies = [];
+    particles = [];
+
+    // Create rooms and corridors
+    const rooms = [];
+    for (let i = 0; i < 15; i++) {
+        const rw = 3 + Math.floor(Math.random() * 5);
+        const rh = 3 + Math.floor(Math.random() * 5);
+        const rx = 2 + Math.floor(Math.random() * (WORLD_W - rw - 4));
+        const ry = 2 + Math.floor(Math.random() * (WORLD_H - rh - 4));
+        rooms.push({ x: rx, y: ry, w: rw, h: rh });
+    }
+
+    // Mark walls
+    for (let y = 0; y < WORLD_H; y++) {
+        for (let x = 0; x < WORLD_W; x++) {
+            let isWall = true;
+            // Border
+            if (x === 0 || x === WORLD_W - 1 || y === 0 || y === WORLD_H - 1) {
+                isWall = true;
+            } else {
+                // Check rooms
+                for (const r of rooms) {
+                    if (x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h) {
+                        isWall = false;
+                        break;
+                    }
+                }
+                // Corridors between rooms
+                if (isWall && rooms.length > 1) {
+                    for (let i = 0; i < rooms.length - 1; i++) {
+                        const r1 = rooms[i];
+                        const r2 = rooms[i + 1];
+                        const cx1 = Math.floor(r1.x + r1.w / 2);
+                        const cy1 = Math.floor(r1.y + r1.h / 2);
+                        const cx2 = Math.floor(r2.x + r2.w / 2);
+                        const cy2 = Math.floor(r2.y + r2.h / 2);
+
+                        if ((x >= Math.min(cx1, cx2) && x <= Math.max(cx1, cx2) && y === cy1) ||
+                            (y >= Math.min(cy1, cy2) && y <= Math.max(cy1, cy2) && x === cx2)) {
+                            isWall = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (isWall) walls.push({ x, y });
         }
+    }
 
-        function updateGame() {
-            if (isGameOver) return;
+    // Place player in first room
+    const startRoom = rooms[0];
+    player.x = (startRoom.x + startRoom.w / 2) * TILE;
+    player.y = (startRoom.y + startRoom.h / 2) * TILE;
 
-            const enemies = document.querySelectorAll('.enemy');
-            const playerRect = player.getBoundingClientRect();
+    // Place items (matches, candles)
+    for (let i = 1; i < rooms.length; i++) {
+        const r = rooms[i];
+        const types = ['match', 'candle', 'match', 'candle', 'match'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        items.push({
+            x: (r.x + 1 + Math.floor(Math.random() * (r.w - 2))) * TILE + TILE / 2,
+            y: (r.y + 1 + Math.floor(Math.random() * (r.h - 2))) * TILE + TILE / 2,
+            type: type,
+            taken: false,
+            pulse: Math.random() * Math.PI * 2
+        });
+    }
 
-            enemies.forEach(enemy => {
-                let top = parseInt(window.getComputedStyle(enemy).getPropertyValue('top'));
-                
-                // Gerakkan musuh ke bawah
-                enemy.style.top = (top + 5) + 'px';
+    // Place enemies (shadows)
+    for (let i = 3; i < rooms.length; i += 2) {
+        const r = rooms[i];
+        enemies.push({
+            x: (r.x + r.w / 2) * TILE,
+            y: (r.y + r.h / 2) * TILE,
+            size: 12,
+            speed: 0.3 + Math.random() * 0.3,
+            angle: Math.random() * Math.PI * 2,
+            state: 'wander',
+            alertTimer: 0
+        });
+    }
 
-                // Cek Tabrakan
-                const enemyRect = enemy.getBoundingClientRect();
-                if (
-                    playerRect.left < enemyRect.right &&
-                    playerRect.right > enemyRect.left &&
-                    playerRect.top < enemyRect.bottom &&
-                    playerRect.bottom > enemyRect.top
-                ) {
-                    gameOver();
-                }
-
-                // Hapus musuh jika sudah lewat bawah dan tambah skor
-                if (top > window.innerHeight) {
-                    enemy.remove();
-                    score++;
-                    scoreBoard.innerText = 'Skor: ' + score;
-                }
+    // Add extra candles scattered
+    for (let i = 0; i < 8; i++) {
+        const rx = 3 + Math.floor(Math.random() * (WORLD_W - 6));
+        const ry = 3 + Math.floor(Math.random() * (WORLD_H - 6));
+        if (!walls.some(w => w.x === rx && w.y === ry)) {
+            items.push({
+                x: rx * TILE + TILE / 2,
+                y: ry * TILE + TILE / 2,
+                type: 'candle',
+                taken: false,
+                pulse: Math.random() * Math.PI * 2
             });
         }
+    }
+}
 
-        function gameOver() {
-            isGameOver = true;
-            clearInterval(gameInterval);
-            clearInterval(enemyInterval);
-            alert('Game Over! Skor kamu: ' + score);
-            startBtn.style.display = 'block';
-            startBtn.innerText = 'Main Lagi';
+function isWall(x, y) {
+    const tx = Math.floor(x / TILE);
+    const ty = Math.floor(y / TILE);
+    return walls.some(w => w.x === tx && w.y === ty);
+}
+
+function setMove(dir) { moveDir = dir; }
+function stopMove() { moveDir = null; }
+
+// Keyboard
+window.addEventListener('keydown', e => {
+    const keys = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right' };
+    if (keys[e.key]) moveDir = keys[e.key];
+});
+window.addEventListener('keyup', e => {
+    const keys = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right' };
+    if (keys[e.key] === moveDir) moveDir = null;
+});
+
+// Touch for pickup
+let touchStartX = 0, touchStartY = 0;
+canvas.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+});
+canvas.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) {
+        tryPickup();
+    }
+});
+canvas.addEventListener('click', tryPickup);
+
+function tryPickup() {
+    if (!gameRunning || won) return;
+    for (const item of items) {
+        if (item.taken) continue;
+        const dx = item.x - player.x;
+        const dy = item.y - player.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < TILE * 1.5) {
+            item.taken = true;
+            if (item.type === 'match') {
+                matches++;
+                playSound('pickup');
+                showMessage('+1 Korek Api', 1000);
+            } else {
+                candle = Math.min(100, candle + 35);
+                playSound('pickup');
+                showMessage('Lilin Diperbarui!', 1000);
+            }
+            updateUI();
         }
-    </script>
+    }
+
+    // Use match if candle very low
+    if (matches > 0 && candle < 20) {
+        matches--;
+        candle = Math.min(100, candle + 25);
+        playSound('pickup');
+        showMessage('Korek digunakan!', 1000);
+        updateUI();
+    }
+}
+
+function showMessage(text, duration) {
+    const el = document.getElementById('message');
+    el.textContent = text;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, duration);
+}
+
+function updateUI() {
+    document.getElementById('candleVal').textContent = Math.floor(candle);
+    document.getElementById('matchVal').textContent = matches;
+    document.getElementById('stepVal').textContent = steps;
+}
+
+// ================= UPDATE =================
+function update(dt) {
+    if (!gameRunning) return;
+    gameTime += dt;
+
+    // Candle drain
+    candle -= dt * 1.5; // drains over ~66 seconds
+    if (candle <= 0) {
+        candle = 0;
+        deathTimer += dt;
+        if (deathTimer > 2) {
+            gameOver('Kegelapan menelanmu...');
+            return;
+        }
+    } else {
+        deathTimer = Math.max(0, deathTimer - dt);
+    }
+
+    // Flicker
+    flickerOffset = Math.sin(gameTime * 10) * 3 + Math.sin(gameTime * 23) * 2;
+
+    // Movement
+    const speed = 2.5;
+    let dx = 0, dy = 0;
+    if (moveDir === 'up') dy = -speed;
+    if (moveDir === 'down') dy = speed;
+    if (moveDir === 'left') dx = -speed;
+    if (moveDir === 'right') dx = speed;
+
+    if (dx !== 0 || dy !== 0) {
+        const newX = player.x + dx;
+        const newY = player.y + dy;
+        if (!isWall(newX, player.y)) player.x = newX;
+        if (!isWall(player.x, newY)) player.y = newY;
+
+        if (Math.random() < 0.05) {
+            steps++;
+            playSound('step');
+        }
+    }
+
+    // Camera follow
+    camera.x += (player.x - W / 2 - camera.x) * 0.1;
+    camera.y += (player.y - H / 2 - camera.y) * 0.1;
+
+    // Enemies
+    const lightRadius = (candle / 100) * 180 + 20;
+    for (const enemy of enemies) {
+        const ex = enemy.x - player.x;
+        const ey = enemy.y - player.y;
+        const dist = Math.sqrt(ex * ex + ey * ey);
+
+        if (dist < lightRadius && candle > 5) {
+            // In light - flee or freeze
+            enemy.state = 'flee';
+            enemy.alertTimer = 2;
+        } else if (enemy.alertTimer > 0) {
+            enemy.alertTimer -= dt;
+            enemy.state = 'wander';
+        } else if (dist < 80 && candle < 30) {
+            enemy.state = 'hunt';
+        }
+
+        if (enemy.state === 'hunt') {
+            const angle = Math.atan2(ey, ex);
+            enemy.x += Math.cos(angle) * enemy.speed * 1.5;
+            enemy.y += Math.sin(angle) * enemy.speed * 1.5;
+        } else if (enemy.state === 'flee') {
+            const angle = Math.atan2(ey, ex);
+            enemy.x -= Math.cos(angle) * enemy.speed * 2;
+            enemy.y -= Math.sin(angle) * enemy.speed * 2;
+        } else {
+            enemy.angle += (Math.random() - 0.5) * 0.1;
+            enemy.x += Math.cos(enemy.angle) * enemy.speed * 0.5;
+            enemy.y += Math.sin(enemy.angle) * enemy.speed * 0.5;
+        }
+
+        // Keep in bounds
+        enemy.x = Math.max(TILE, Math.min((WORLD_W - 1) * TILE, enemy.x));
+        enemy.y = Math.max(TILE, Math.min((WORLD_H - 1) * TILE, enemy.y));
+
+        // Collision with player
+        if (dist < player.size + enemy.size && candle < 15) {
+            gameOver('Mereka menemukanmu...');
+            return;
+        }
+    }
+
+    // Particles (dust/sparks)
+    if (Math.random() < 0.1) {
+        particles.push({
+            x: player.x + (Math.random() - 0.5) * lightRadius,
+            y: player.y + (Math.random() - 0.5) * lightRadius,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: (Math.random() - 0.5) * 0.3,
+            life: 1 + Math.random() * 2,
+            maxLife: 3,
+            size: 1 + Math.random() * 2
+        });
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= dt;
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    // Random whispers
+    whisperTimer -= dt;
+    if (whisperTimer <= 0 && candle < 50) {
+        playWhisper();
+        whisperTimer = 5 + Math.random() * 10;
+    }
+
+    // Win condition - find exit (random room far from start)
+    // Actually let's make it: survive and find 10 items
+    const takenItems = items.filter(i => i.taken).length;
+    if (takenItems >= 8 && !won) {
+        won = true;
+        showMessage('🕯 Kamu bertahan hidup!
+
+Kegelapan surut...', 5000);
+        setTimeout(() => location.reload(), 5000);
+    }
+
+    updateUI();
+}
+
+function gameOver(reason) {
+    gameRunning = false;
+    playSound('danger');
+    showMessage('💀 ' + reason + '
+
+Langkah: ' + steps + '
+
+Sentuh untuk coba lagi', 999999);
+    setTimeout(() => {
+        document.getElementById('message').addEventListener('click', () => location.reload());
+    }, 100);
+}
+
+// ================= RENDER =================
+function render() {
+    // Clear
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+
+    if (!gameRunning) return;
+
+    ctx.save();
+    ctx.translate(-camera.x, -camera.y);
+
+    // Draw walls
+    ctx.fillStyle = '#1a1a1a';
+    for (const w of walls) {
+        ctx.fillRect(w.x * TILE, w.y * TILE, TILE, TILE);
+        // Wall edges
+        ctx.strokeStyle = '#0a0a0a';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(w.x * TILE, w.y * TILE, TILE, TILE);
+    }
+
+    // Draw floor grid (subtle)
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x < WORLD_W; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * TILE, 0);
+        ctx.lineTo(x * TILE, WORLD_H * TILE);
+        ctx.stroke();
+    }
+    for (let y = 0; y < WORLD_H; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * TILE);
+        ctx.lineTo(WORLD_W * TILE, y * TILE);
+        ctx.stroke();
+    }
+
+    // Draw items
+    for (const item of items) {
+        if (item.taken) continue;
+        const pulse = Math.sin(gameTime * 3 + item.pulse) * 0.3 + 0.7;
+
+        if (item.type === 'match') {
+            ctx.fillStyle = `rgba(200, 150, 50, ${pulse})`;
+            ctx.beginPath();
+            ctx.arc(item.x, item.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            // Glow
+            ctx.fillStyle = `rgba(200, 150, 50, ${pulse * 0.2})`;
+            ctx.beginPath();
+            ctx.arc(item.x, item.y, 10, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            ctx.fillStyle = `rgba(255, 100, 30, ${pulse})`;
+            ctx.beginPath();
+            ctx.arc(item.x, item.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = `rgba(255, 100, 30, ${pulse * 0.3})`;
+            ctx.beginPath();
+            ctx.arc(item.x, item.y, 12, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    // Draw enemies
+    for (const enemy of enemies) {
+        const ex = enemy.x - camera.x - (player.x - camera.x);
+        const ey = enemy.y - camera.y - (player.y - camera.y);
+        const distToPlayer = Math.sqrt(ex * ex + ey * ey);
+        const lightRadius = (candle / 100) * 180 + 20;
+
+        if (distToPlayer < lightRadius + 50) {
+            const alpha = Math.max(0, 1 - distToPlayer / lightRadius);
+            ctx.fillStyle = `rgba(20, 20, 20, ${alpha * 0.9})`;
+
+            // Shadow shape - irregular
+            ctx.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2 + gameTime * 0.5;
+                const r = enemy.size + Math.sin(gameTime * 3 + i) * 3;
+                const px = enemy.x + Math.cos(angle) * r;
+                const py = enemy.y + Math.sin(angle) * r;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // Eyes
+            if (alpha > 0.3) {
+                ctx.fillStyle = `rgba(255, 50, 0, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(enemy.x - 3, enemy.y - 2, 2, 0, Math.PI * 2);
+                ctx.arc(enemy.x + 3, enemy.y - 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+
+    // Draw particles
+    for (const p of particles) {
+        const alpha = p.life / p.maxLife;
+        ctx.fillStyle = `rgba(255, 200, 100, ${alpha * 0.5})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Draw player (just a silhouette)
+    ctx.fillStyle = '#333';
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+
+    // ================= LIGHTING / FOG =================
+    // Create darkness overlay with hole for light
+    const lightR = (candle / 100) * 180 + 20 + flickerOffset;
+
+    // Create radial gradient for light
+    const screenPx = player.x - camera.x;
+    const screenPy = player.y - camera.y;
+
+    const gradient = ctx.createRadialGradient(
+        screenPx, screenPy, 5,
+        screenPx, screenPy, lightR
+    );
+
+    // Color based on candle level
+    if (candle > 50) {
+        gradient.addColorStop(0, 'rgba(255, 200, 100, 0.0)');
+        gradient.addColorStop(0.3, 'rgba(255, 150, 50, 0.05)');
+        gradient.addColorStop(0.7, 'rgba(100, 50, 20, 0.3)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.98)');
+    } else if (candle > 20) {
+        gradient.addColorStop(0, 'rgba(255, 150, 50, 0.0)');
+        gradient.addColorStop(0.3, 'rgba(200, 80, 20, 0.1)');
+        gradient.addColorStop(0.6, 'rgba(80, 30, 10, 0.5)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.98)');
+    } else {
+        gradient.addColorStop(0, 'rgba(255, 80, 20, 0.0)');
+        gradient.addColorStop(0.2, 'rgba(150, 40, 10, 0.2)');
+        gradient.addColorStop(0.5, 'rgba(60, 20, 5, 0.7)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.99)');
+    }
+
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, W, H);
+
+    // Extra darkness vignette
+    const vig = ctx.createRadialGradient(W/2, H/2, H * 0.3, W/2, H/2, H * 0.8);
+    vig.addColorStop(0, 'rgba(0,0,0,0)');
+    vig.addColorStop(1, `rgba(0,0,0,${0.3 + (1 - candle/100) * 0.5})`);
+    ctx.fillStyle = vig;
+    ctx.fillRect(0, 0, W, H);
+
+    // Candle flame visual near player
+    const flameFlicker = Math.sin(gameTime * 15) * 2;
+    ctx.fillStyle = `rgba(255, ${150 + flameFlicker * 10}, 50, ${0.6 + Math.random() * 0.2})`;
+    ctx.beginPath();
+    ctx.ellipse(screenPx, screenPy - 12, 3 + flameFlicker * 0.3, 6 + flameFlicker * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Warning when low
+    if (candle < 20) {
+        ctx.fillStyle = `rgba(255, 0, 0, ${0.1 + Math.sin(gameTime * 5) * 0.05})`;
+        ctx.fillRect(0, 0, W, H);
+    }
+}
+
+// ================= MAIN LOOP =================
+let lastTime = 0;
+function loop(timestamp) {
+    const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+    lastTime = timestamp;
+
+    update(dt);
+    render();
+
+    requestAnimationFrame(loop);
+}
+
+function startGame() {
+    document.getElementById('startScreen').style.display = 'none';
+    initAudio();
+    generateWorld();
+    gameRunning = true;
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+}
+</script>
 </body>
 </html>
